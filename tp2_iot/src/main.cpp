@@ -48,9 +48,46 @@ matrix.fillScreen(matrix.Color(0, 255, 0));
 matrix.show();
 }
 
+bool isLeftButtonPressed() {
+  if(digitalRead(leftButtonPin) == LOW) {
+    delay(50);
+    if(digitalRead(leftButtonPin) == LOW)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isRightButtonPressed() {
+  if(digitalRead(rightButtonPin) == LOW) {
+    delay(50);
+    if(digitalRead(rightButtonPin) == LOW)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 
 void loop() {
+
+  if (isLeftButtonPressed()) {
+    Serial.println("Left button pressed");
+    matrix.fillScreen(matrix.Color(200, 0, 200));
+    matrix.show();
+  }
+  if (isRightButtonPressed()) {
+    Serial.println("Right button pressed");
+    matrix.fillScreen(matrix.Color(200, 200, 0));
+    matrix.show();
+  }
+
+  
+
+
   switch (currentState) {
     case State::NON_PROGRAMME:
 
