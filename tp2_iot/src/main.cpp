@@ -20,6 +20,16 @@ TM1637Display display(CLK_PIN, DIO_PIN);
 
 Servo servo; 
 
+enum class State {
+  NON_PROGRAMME ,
+  PROG_SAISIE,
+  PROG_CONFIRMATION,
+  OUVERT,
+  FERME
+};
+
+State currentState = State::NON_PROGRAMME;
+
 
 void setup() {
 Serial.begin(115200);
@@ -41,6 +51,23 @@ matrix.show();
 
 
 void loop() {
+  switch (currentState) {
+    case State::NON_PROGRAMME:
+
+      break;
+    case State::PROG_SAISIE:
+
+      break;
+    case State::PROG_CONFIRMATION:
+
+      break;
+    case State::OUVERT:
+
+      break;
+    case State::FERME:
+
+      break;
+  }
 }
 
 
