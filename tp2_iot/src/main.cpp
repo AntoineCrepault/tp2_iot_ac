@@ -30,20 +30,22 @@ enum class State {
 
 State currentState = State::START;
 
+int code;
+
 
 void setup() {
-Serial.begin(115200);
-pinMode(leftButtonPin, INPUT_PULLUP);
-pinMode(rightButtonPin, INPUT_PULLUP);
+  Serial.begin(115200);
+  pinMode(leftButtonPin, INPUT_PULLUP);
+  pinMode(rightButtonPin, INPUT_PULLUP);
 
-display.setBrightness(0x0f);
-display.clear();
+  display.setBrightness(0x0f);
+  display.clear();
 
-servo.attach(SERVO_PIN);
-servo.write(90);
+  servo.attach(SERVO_PIN);
+  servo.write(90);
 
-matrix.begin();
-matrix.setBrightness(BRIGHTNESS);
+  matrix.begin();
+  matrix.setBrightness(BRIGHTNESS);
 }
 
 bool isLeftButtonPressed() {
@@ -93,8 +95,52 @@ void Start() {
 }
 
 void progSaisie() {
-  matrix.fillScreen(matrix.Color(255, 150, 0));
-  matrix.show();
+  static unsigned long timer = millis();
+  static bool lightOn = false;
+
+  if (millis() - timer >= 500) {
+    timer = millis();
+    lightOn = !lightOn;
+  }
+
+  if(lightOn) {
+    matrix.fillScreen(matrix.Color(255, 150, 0));
+    matrix.show(); 
+  } else {
+    matrix.fillScreen(matrix.Color(0, 0, 0));
+    matrix.show(); 
+  }
+
+  static int digits[] = {0, 0, 0, 0};
+  static int index = 0;
+
+  //pour ne pas monté plusieur foi de digit par click
+  static bool leftWasPressed = false;
+  static bool rightWasPressed = true;
+
+  bool leftPressed = isLeftButtonPressed();
+  bool rightPressed = isRightButtonPressed();
+
+if (leftPressed && !leftWasPressed) 
+{
+  if (digits[index] + 1 > 9) 
+  {
+    digits[index] = 0;
+  } else {digits[index]++;}
+}
+
+if (rightPressed && !rightWasPressed) 
+{
+  if (index < 3) 
+  {
+    index++;
+  } else {index = 0;}
+}
+
+leftWasPressed = leftPressed;
+rightWasPressed = rightPressed;
+
+  display.showNumberDec(digits[index], false, 1, index);
 }
 
 
