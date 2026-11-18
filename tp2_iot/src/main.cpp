@@ -21,14 +21,14 @@ TM1637Display display(CLK_PIN, DIO_PIN);
 Servo servo; 
 
 enum class State {
-  NON_PROGRAMME ,
+  START,
   PROG_SAISIE,
   PROG_CONFIRMATION,
   OUVERT,
   FERME
 };
 
-State currentState = State::NON_PROGRAMME;
+State currentState = State::START;
 
 
 void setup() {
@@ -44,8 +44,6 @@ servo.write(90);
 
 matrix.begin();
 matrix.setBrightness(BRIGHTNESS);
-matrix.fillScreen(matrix.Color(0, 255, 0));
-matrix.show();
 }
 
 bool isLeftButtonPressed() {
@@ -70,30 +68,46 @@ bool isRightButtonPressed() {
   return false;
 }
 
+void Start() {
+  servo.write(0);
+  matrix.fillScreen(matrix.Color(0, 255, 0));
+  matrix.show();  
+
+  static unsigned long pressedAt = 0;
+  static bool holding = false;
+
+  if (isRightButtonPressed()) {
+    if (!holding) {
+      pressedAt = millis();
+      holding = true;
+      Serial.println("pressedAt: " + String(pressedAt));
+    }
+
+    if (millis() - pressedAt >= 3000) {
+      currentState = State::PROG_SAISIE;
+      holding = false;
+    }
+  } else {
+    holding = false;
+  }
+}
+
+void progSaisie() {
+  matrix.fillScreen(matrix.Color(255, 150, 0));
+  matrix.show();
+}
+
+
 
 
 void loop() {
 
-  if (isLeftButtonPressed()) {
-    Serial.println("Left button pressed");
-    matrix.fillScreen(matrix.Color(200, 0, 200));
-    matrix.show();
-  }
-  if (isRightButtonPressed()) {
-    Serial.println("Right button pressed");
-    matrix.fillScreen(matrix.Color(200, 200, 0));
-    matrix.show();
-  }
-
-  
-
-
   switch (currentState) {
-    case State::NON_PROGRAMME:
-
+    case State::START:
+      Start();
       break;
     case State::PROG_SAISIE:
-
+      progSaisie();
       break;
     case State::PROG_CONFIRMATION:
 
