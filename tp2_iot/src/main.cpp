@@ -24,7 +24,8 @@ enum class State {
   START,
   PROG_SAISIE,
   READY_TO_CLOSE,
-  CLOSED
+  CLOSED,
+  UNLOCK
 };
 
 State currentState = State::START;
@@ -34,6 +35,7 @@ int codeConfirmation[4] = {0, 0, 0, 0};
 int codeTry[4] = {0, 0, 0, 0};
 
 bool locked = false;
+bool reset = true;
 
 
 void setup() {
@@ -90,6 +92,7 @@ void start() {
 
     if (millis() - pressedAt >= 3000) {
       currentState = State::PROG_SAISIE;
+      reset = true;
       holding = false;
     }
   } else {
@@ -171,6 +174,16 @@ void progSaisie()
   static bool identical = false;
   static unsigned long timer = 0;
 
+  if(reset)
+  {
+    for (int i = 0; i < 4; i++) 
+    {
+      code[i] = 0;
+      codeConfirmation[i] = 0;
+    }
+      reset = false;
+  }
+
   if (delay)
   {
     if (identical) 
@@ -234,42 +247,34 @@ void progSaisie()
 
 void lock()
 {
-  static unsigned long timer = millis();
+  servo.write(180);
+  delay(1000);
+  servo.write(90);
 
-  if (millis() - timer >= 500) 
-  {
-    servo.write(90);
-    locked = true; 
-    currentState = State::CLOSED;
+  for (int i = 0; i < 4; i++) {
+    codeTry[i] = 0;
   }
-  else
-  {
-    servo.write(180);
-  }
+
+  display.clear();
+  locked = true;
+  currentState = State::CLOSED;
 }
 
 void unlock()
 {
-  static unsigned long timer = millis();
+  servo.write(0);
+  delay(500);
+  servo.write(90);
 
-  if (millis() - timer >= 500) 
-  {
-    servo.write(90);
-    locked = false; 
-    currentState = State::START;
-  }
-  else
-  {
-    servo.write(0);
-  }
+  locked = false;
+  currentState = State::READY_TO_CLOSE;
 }
-//doesnt change the currentState
+
 
 void readyToClose()
 {
-
 //CHANGEMENT_CODE horodaté est envoyé à Firestore.
-  matrix.fillScreen(matrix.Color(0, 255, 100));
+  matrix.fillScreen(matrix.Color(0, 255, 0));
   matrix.show();
 
   if(isLeftButtonPressed() && !locked)
@@ -303,11 +308,11 @@ void manageClosed()
     if (millis() - timer >= 3000)
     {
       if (identical) {
-        
+        currentState = State::UNLOCK;
       }
-      
-      delay = false;
 
+      delay = false;
+      
       //reset
       for (int i = 0; i < 4; i++) {
         codeTry[i] = 0;
@@ -316,6 +321,8 @@ void manageClosed()
 
     return;
   }
+
+  //in the loop after locking and unlocking it when I go back to lock it, it doesnt rotate the servo and insted of staying green for a second befor locking it just turn red and should also reset the codeTry
 
   matrix.fillScreen(matrix.Color(255, 0, 0));
   matrix.show();
@@ -355,6 +362,9 @@ void loop() {
       break;
     case State::CLOSED:
       manageClosed();
+      break;
+    case State::UNLOCK:
+      unlock();
       break;
   }
 }
