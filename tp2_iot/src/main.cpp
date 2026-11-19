@@ -2,6 +2,7 @@
 #include <Adafruit_NeoMatrix.h> 
 #include <TM1637Display.h>
 #include <ESP32Servo.h>
+#include "firebaseHandler.h"
 
 const int MATRIS_OUT_PIN = 15; //matris output pin
 const int CLK_PIN = 23; // display clock pin
@@ -39,6 +40,7 @@ bool reset = true;
 
 
 void setup() {
+  Wifisetup();
   Serial.begin(115200);
   pinMode(leftButtonPin, INPUT_PULLUP);
   pinMode(rightButtonPin, INPUT_PULLUP);
@@ -47,7 +49,6 @@ void setup() {
   display.clear();
 
   servo.attach(SERVO_PIN);
-  //servo.write(0);
 
   matrix.begin();
   matrix.setBrightness(BRIGHTNESS);
@@ -199,6 +200,7 @@ void progSaisie()
     {
       if (identical) 
       {
+        postLog("CHANGEMENT_CODE");
         currentState = State::READY_TO_CLOSE;
       }
       
@@ -257,6 +259,7 @@ void lock()
 
   display.clear();
   locked = true;
+  postLog("FERMETURE");
   currentState = State::CLOSED;
 }
 
@@ -267,13 +270,13 @@ void unlock()
   servo.write(90);
 
   locked = false;
+  postLog("OUVERTURE");
   currentState = State::READY_TO_CLOSE;
 }
 
 
 void readyToClose()
 {
-//CHANGEMENT_CODE horodaté est envoyé à Firestore.
   matrix.fillScreen(matrix.Color(0, 255, 0));
   matrix.show();
 
@@ -291,7 +294,6 @@ void readyToClose()
 
 void manageClosed()
 {
-  // OUVERTURE horodaté est envoyé à Firestore.
 
   static bool delay = false;
   static bool identical = false;
@@ -322,7 +324,7 @@ void manageClosed()
     return;
   }
 
-  //in the loop after locking and unlocking it when I go back to lock it, it doesnt rotate the servo and insted of staying green for a second befor locking it just turn red and should also reset the codeTry
+  
 
   matrix.fillScreen(matrix.Color(255, 0, 0));
   matrix.show();
