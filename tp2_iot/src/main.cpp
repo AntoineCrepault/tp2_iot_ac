@@ -23,14 +23,13 @@ Servo servo;
 enum class State {
   START,
   PROG_SAISIE,
-  PROG_CONFIRMATION,
-  OUVERT,
-  FERME
+  READY_TO_CLOSE
 };
 
 State currentState = State::START;
 
-int code;
+int code[4] = {0, 0, 0, 0};
+int codeConfirmation[4] = {0, 0, 0, 0};
 
 
 void setup() {
@@ -49,7 +48,8 @@ void setup() {
 }
 
 bool isLeftButtonPressed() {
-  if(digitalRead(leftButtonPin) == LOW) {
+  if(digitalRead(leftButtonPin) == LOW) 
+  {
     delay(50);
     if(digitalRead(leftButtonPin) == LOW)
     {
@@ -60,7 +60,8 @@ bool isLeftButtonPressed() {
 }
 
 bool isRightButtonPressed() {
-  if(digitalRead(rightButtonPin) == LOW) {
+  if(digitalRead(rightButtonPin) == LOW) 
+  {
     delay(50);
     if(digitalRead(rightButtonPin) == LOW)
     {
@@ -82,7 +83,6 @@ void Start() {
     if (!holding) {
       pressedAt = millis();
       holding = true;
-      Serial.println("pressedAt: " + String(pressedAt));
     }
 
     if (millis() - pressedAt >= 3000) {
@@ -94,24 +94,8 @@ void Start() {
   }
 }
 
-void progSaisie() {
-  static unsigned long timer = millis();
-  static bool lightOn = false;
-
-  if (millis() - timer >= 500) {
-    timer = millis();
-    lightOn = !lightOn;
-  }
-
-  if(lightOn) {
-    matrix.fillScreen(matrix.Color(255, 150, 0));
-    matrix.show(); 
-  } else {
-    matrix.fillScreen(matrix.Color(0, 0, 0));
-    matrix.show(); 
-  }
-
-  static int digits[] = {0, 0, 0, 0};
+bool codeEntry(int digits[])
+{
   static int index = 0;
 
   //pour ne pas monté plusieur foi de digit par click
@@ -121,48 +105,142 @@ void progSaisie() {
   bool leftPressed = isLeftButtonPressed();
   bool rightPressed = isRightButtonPressed();
 
-if (leftPressed && !leftWasPressed) 
-{
-  if (digits[index] + 1 > 9) 
+  if (leftPressed && !leftWasPressed) 
   {
-    digits[index] = 0;
-  } else {digits[index]++;}
-}
+    if (digits[index] + 1 > 9) 
+    {
+      digits[index] = 0;
+    } else {digits[index]++;}
+  }
 
-if (rightPressed && !rightWasPressed) 
-{
-  if (index < 3) 
+  if (rightPressed && !rightWasPressed) 
   {
-    index++;
-  } else {index = 0;}
-}
+    if (index < 3) 
+    {
+      index++;
+    } 
+    else
+    {
+      index = 0;
 
-leftWasPressed = leftPressed;
-rightWasPressed = rightPressed;
+      leftWasPressed = leftPressed;
+      rightWasPressed = rightPressed;
+
+      display.clear();
+      return true;
+    }
+  }
+
+  leftWasPressed = leftPressed;
+  rightWasPressed = rightPressed;
 
   display.showNumberDec(digits[index], false, 1, index);
+
+  return false;
 }
 
+void blink(int r, int g, int b)
+{
+  static unsigned long timer = millis();
+  static bool lightOn = false;
+
+  if (millis() - timer >= 500) 
+  {
+    timer = millis();
+    lightOn = !lightOn;
+  }
+
+  if(lightOn) 
+  {
+    matrix.fillScreen(matrix.Color(r, g, b));
+    matrix.show(); 
+  } else 
+  {
+    matrix.fillScreen(matrix.Color(0, 0, 0));
+    matrix.show(); 
+  }
+}
+
+void progSaisie()
+{
+  static bool codeEntered = false;
+  static bool delay = false;
+  static bool identical = false;
+  static unsigned long timer = 0;
+
+  if (delay)
+  {
+    if (identical) {
+      blink(0, 255, 0);
+    } else {
+      blink(255, 0, 0);
+    }
+
+    if (millis() - timer >= 3000)
+    {
+      if (identical) {
+        currentState = State::READY_TO_CLOSE;
+      }
+      
+      delay = false;
+      codeEntered = false;
+
+      //reset
+      for (int i = 0; i < 4; i++) {
+        code[i] = 0;
+        codeConfirmation[i] = 0;
+      }
+    }
+
+    return;
+  }
+
+  blink(255, 150, 0);
+
+  if (!codeEntered)
+  {
+    codeEntered = codeEntry(code);
+  }
+  else
+  {
+    if (codeEntry(codeConfirmation))
+    {
+      identical = true;
+
+      for (int i = 0; i < 4; i++)
+      {
+        if (codeConfirmation[i] != code[i]) {
+          identical = false;
+        }
+      }
+
+      timer = millis();
+      delay = true;
+    }
+  }
+}
+
+void readyToClose()
+{
+//CHANGEMENT_CODE horodaté est envoyé à Firestore.
+matrix.fillScreen(matrix.Color(0, 255, 0));
+matrix.show();
+}
 
 
 
 void loop() {
 
-  switch (currentState) {
+  switch (currentState) 
+  {
     case State::START:
       Start();
       break;
     case State::PROG_SAISIE:
       progSaisie();
       break;
-    case State::PROG_CONFIRMATION:
-
-      break;
-    case State::OUVERT:
-
-      break;
-    case State::FERME:
-
+    case State::READY_TO_CLOSE:
+      readyToClose();
       break;
   }
 }
