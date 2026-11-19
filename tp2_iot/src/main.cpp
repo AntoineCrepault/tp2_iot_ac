@@ -23,13 +23,17 @@ Servo servo;
 enum class State {
   START,
   PROG_SAISIE,
-  READY_TO_CLOSE
+  READY_TO_CLOSE,
+  CLOSED
 };
 
 State currentState = State::START;
 
 int code[4] = {0, 0, 0, 0};
 int codeConfirmation[4] = {0, 0, 0, 0};
+int codeTry[4] = {0, 0, 0, 0};
+
+bool locked = false;
 
 
 void setup() {
@@ -41,7 +45,7 @@ void setup() {
   display.clear();
 
   servo.attach(SERVO_PIN);
-  servo.write(90);
+  //servo.write(0);
 
   matrix.begin();
   matrix.setBrightness(BRIGHTNESS);
@@ -71,8 +75,7 @@ bool isRightButtonPressed() {
   return false;
 }
 
-void Start() {
-  servo.write(0);
+void start() {
   matrix.fillScreen(matrix.Color(0, 255, 0));
   matrix.show();  
 
@@ -170,15 +173,19 @@ void progSaisie()
 
   if (delay)
   {
-    if (identical) {
+    if (identical) 
+    {
       blink(0, 255, 0);
-    } else {
+    } 
+    else 
+    {
       blink(255, 0, 0);
     }
 
     if (millis() - timer >= 3000)
     {
-      if (identical) {
+      if (identical) 
+      {
         currentState = State::READY_TO_CLOSE;
       }
       
@@ -186,9 +193,13 @@ void progSaisie()
       codeEntered = false;
 
       //reset
-      for (int i = 0; i < 4; i++) {
+      if(!identical)
+      {
+        for (int i = 0; i < 4; i++) 
+        {
         code[i] = 0;
         codeConfirmation[i] = 0;
+        }
       }
     }
 
@@ -209,7 +220,8 @@ void progSaisie()
 
       for (int i = 0; i < 4; i++)
       {
-        if (codeConfirmation[i] != code[i]) {
+        if (codeConfirmation[i] != code[i]) 
+        {
           identical = false;
         }
       }
@@ -220,11 +232,110 @@ void progSaisie()
   }
 }
 
+void lock()
+{
+  static unsigned long timer = millis();
+
+  if (millis() - timer >= 500) 
+  {
+    servo.write(90);
+    locked = true; 
+    currentState = State::CLOSED;
+  }
+  else
+  {
+    servo.write(180);
+  }
+}
+
+void unlock()
+{
+  static unsigned long timer = millis();
+
+  if (millis() - timer >= 500) 
+  {
+    servo.write(90);
+    locked = false; 
+    currentState = State::START;
+  }
+  else
+  {
+    servo.write(0);
+  }
+}
+//doesnt change the currentState
+
 void readyToClose()
 {
+
 //CHANGEMENT_CODE horodaté est envoyé à Firestore.
-matrix.fillScreen(matrix.Color(0, 255, 0));
-matrix.show();
+  matrix.fillScreen(matrix.Color(0, 255, 100));
+  matrix.show();
+
+  if(isLeftButtonPressed() && !locked)
+  {
+    display.clear();
+    locked = true; 
+  }
+
+  if(locked)
+  {
+    lock();
+  }
+}
+
+void manageClosed()
+{
+  // OUVERTURE horodaté est envoyé à Firestore.
+
+  static bool delay = false;
+  static bool identical = false;
+  static unsigned long timer = 0;
+
+  if (delay)
+  {
+    if (identical) {
+      blink(0, 255, 0);
+    } else {
+      blink(255, 0, 0);
+    }
+
+    if (millis() - timer >= 3000)
+    {
+      if (identical) {
+        
+      }
+      
+      delay = false;
+
+      //reset
+      for (int i = 0; i < 4; i++) {
+        codeTry[i] = 0;
+      }
+    }
+
+    return;
+  }
+
+  matrix.fillScreen(matrix.Color(255, 0, 0));
+  matrix.show();
+
+  if (codeEntry(codeTry))
+  {
+    identical = true;
+
+    for (int i = 0; i < 4; i++)
+    {
+      Serial.print(codeTry[i]);
+      Serial.print(code[i]);
+      if (codeTry[i] != code[i]) {
+        identical = false;
+      }
+    }
+
+    timer = millis();
+    delay = true;
+  }
 }
 
 
@@ -234,13 +345,16 @@ void loop() {
   switch (currentState) 
   {
     case State::START:
-      Start();
+      start();
       break;
     case State::PROG_SAISIE:
       progSaisie();
       break;
     case State::READY_TO_CLOSE:
       readyToClose();
+      break;
+    case State::CLOSED:
+      manageClosed();
       break;
   }
 }
