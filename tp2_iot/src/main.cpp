@@ -91,7 +91,7 @@ void start() {
       holding = true;
     }
 
-    if (millis() - pressedAt >= 3000) {
+    if (millis() - pressedAt >= 2500) { //3000 trop long
       currentState = State::PROG_SAISIE;
       reset = true;
       holding = false;
@@ -151,7 +151,7 @@ void blink(int r, int g, int b)
   static unsigned long timer = millis();
   static bool lightOn = false;
 
-  if (millis() - timer >= 500) 
+  if (millis() - timer >= 300) 
   {
     timer = millis();
     lightOn = !lightOn;
@@ -200,6 +200,8 @@ void progSaisie()
     {
       if (identical) 
       {
+        matrix.fillScreen(matrix.Color(0, 255, 0));
+        matrix.show();
         postLog("CHANGEMENT_CODE");
         currentState = State::READY_TO_CLOSE;
       }
@@ -361,6 +363,7 @@ void loop() {
       break;
     case State::READY_TO_CLOSE:
       readyToClose();
+      start();
       break;
     case State::CLOSED:
       manageClosed();
