@@ -4,6 +4,13 @@
 #include <ESP32Servo.h>
 #include "firebaseHandler.h"
 
+
+//J'aurais bien fait un gros refactoring et une division des fonctions dans des fichiers différents,
+//  mais j'ai malheureusement oublié mon fil micro-USB à l'école (comme vous pouvez le voir dans ma démo). 
+//  Changer beaucoup de code sans pouvoir le tester serait dangereuxc j'ai donc décidé de laisser tel quel.
+
+
+
 const int MATRIS_OUT_PIN = 15; //matris output pin
 const int CLK_PIN = 23; // display clock pin
 const int DIO_PIN = 22; // display data pin
@@ -54,6 +61,10 @@ void setup() {
   matrix.setBrightness(BRIGHTNESS);
 }
 
+
+//utility functions
+
+
 bool isLeftButtonPressed() {
   if(digitalRead(leftButtonPin) == LOW) 
   {
@@ -77,6 +88,32 @@ bool isRightButtonPressed() {
   }
   return false;
 }
+
+void blink(int r, int g, int b)
+{
+  static unsigned long timer = millis();
+  static bool lightOn = false;
+
+  if (millis() - timer >= 300) 
+  {
+    timer = millis();
+    lightOn = !lightOn;
+  }
+
+  if(lightOn) 
+  {
+    matrix.fillScreen(matrix.Color(r, g, b));
+    matrix.show(); 
+  } else 
+  {
+    matrix.fillScreen(matrix.Color(0, 0, 0));
+    matrix.show(); 
+  }
+}
+
+
+//main functions
+
 
 void start() {
   matrix.fillScreen(matrix.Color(0, 255, 0));
@@ -144,28 +181,6 @@ bool codeEntry(int digits[])
   display.showNumberDec(digits[index], false, 1, index);
 
   return false;
-}
-
-void blink(int r, int g, int b)
-{
-  static unsigned long timer = millis();
-  static bool lightOn = false;
-
-  if (millis() - timer >= 300) 
-  {
-    timer = millis();
-    lightOn = !lightOn;
-  }
-
-  if(lightOn) 
-  {
-    matrix.fillScreen(matrix.Color(r, g, b));
-    matrix.show(); 
-  } else 
-  {
-    matrix.fillScreen(matrix.Color(0, 0, 0));
-    matrix.show(); 
-  }
 }
 
 void progSaisie()
@@ -249,6 +264,7 @@ void progSaisie()
   }
 }
 
+// Utiliser un délai dans l'utilisation du servomoteur, car je ne veux aucune interaction avec le coffre pendant la fermeture ou l'ouverture.
 void lock()
 {
   servo.write(180);
@@ -296,7 +312,6 @@ void readyToClose()
 
 void manageClosed()
 {
-
   static bool delay = false;
   static bool identical = false;
   static unsigned long timer = 0;
@@ -325,8 +340,6 @@ void manageClosed()
 
     return;
   }
-
-  
 
   matrix.fillScreen(matrix.Color(255, 0, 0));
   matrix.show();
