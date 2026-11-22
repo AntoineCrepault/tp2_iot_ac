@@ -1,0 +1,20 @@
+
+## Coffre connecté à code à quatre chiffres.
+Un coffre avec code à quatre chiffres contrôlé par un ESP32, avec un journal des événements dans Firebase.
+### Pins de l’ESP32
+
+| Composant         | Constante        | Broche ESP32 |
+| ----------------- | ---------------- | ------------ |
+| NeoMatrix 8 × 8   | `MATRIS_OUT_PIN` | GPIO 15      |
+| TM1637            | `CLK_PIN`        | GPIO 23      |
+| TM1637            | `DIO_PIN`        | GPIO 22      |
+| Bouton A (gauche) | `LEFT_BTN_PIN`   | GPIO 19      |
+| Bouton B (droit)  | `RIGHT_BTN_PIN`  | GPIO 18      |
+| Servomoteur       | `SERVO_PIN`      | GPIO 13      |
+
+
+### Bibliothèques
+Adafruit NeoMatrix, TM1637, ESP32Servo et Firebase Arduino Client.
+### Liens
+- Dépôt Git — https://github.com/AntoineCrepault/tp2_iot_ac
+- Vidéo démo — https://youtube.com/shorts/r5svvqI-P4E

@@ -14,8 +14,8 @@
 const int MATRIS_OUT_PIN = 15; //matris output pin
 const int CLK_PIN = 23; // display clock pin
 const int DIO_PIN = 22; // display data pin
-const int leftButtonPin = 19; // left button pin
-const int rightButtonPin = 18; // right button pin
+const int LEFT_BTN_PIN = 19; // left button pin
+const int RIGHT_BTN_PIN = 18; // right button pin
 const int SERVO_PIN = 13; // servo pin
 
 #define BRIGHTNESS 20
@@ -49,8 +49,8 @@ bool reset = true;
 void setup() {
   Wifisetup();
   Serial.begin(115200);
-  pinMode(leftButtonPin, INPUT_PULLUP);
-  pinMode(rightButtonPin, INPUT_PULLUP);
+  pinMode(LEFT_BTN_PIN, INPUT_PULLUP);
+  pinMode(RIGHT_BTN_PIN, INPUT_PULLUP);
 
   display.setBrightness(0x0f);
   display.clear();
@@ -66,10 +66,10 @@ void setup() {
 
 
 bool isLeftButtonPressed() {
-  if(digitalRead(leftButtonPin) == LOW) 
+  if(digitalRead(LEFT_BTN_PIN) == LOW) 
   {
     delay(50);
-    if(digitalRead(leftButtonPin) == LOW)
+    if(digitalRead(LEFT_BTN_PIN) == LOW)
     {
       return true;
     }
@@ -78,10 +78,10 @@ bool isLeftButtonPressed() {
 }
 
 bool isRightButtonPressed() {
-  if(digitalRead(rightButtonPin) == LOW) 
+  if(digitalRead(RIGHT_BTN_PIN) == LOW) 
   {
     delay(50);
-    if(digitalRead(rightButtonPin) == LOW)
+    if(digitalRead(RIGHT_BTN_PIN) == LOW)
     {
       return true;
     }
