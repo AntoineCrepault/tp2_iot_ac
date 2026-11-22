@@ -35,3 +35,10 @@ Read more about using header files in official GCC documentation:
 * Computed Includes
 
 https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
+
+Configuration des identifiants
+------------------------------
+
+Copiez `secrets.exemple.h` vers `secrets.h`, puis remplacez les valeurs
+fictives. Le fichier `secrets.h` est ignoré par Git et ne doit jamais être
+ajouté au dépôt.

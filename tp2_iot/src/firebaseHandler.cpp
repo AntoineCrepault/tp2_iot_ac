@@ -4,8 +4,10 @@
 #include <Firebase_ESP_Client.h>  
 #include "addons/TokenHelper.h" 
 #include "addons/RTDBHelper.h" 
-#include "config.h"
+#include "secrets.h"
 #include "firebaseHandler.h"
+
+const String SAFE_NAME = "coffre_424242";
 
 FirebaseAuth auth; 
 FirebaseConfig config; 
