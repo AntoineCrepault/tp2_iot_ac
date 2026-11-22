@@ -5,10 +5,6 @@
 #include "firebaseHandler.h"
 
 
-//J'aurais bien fait un gros refactoring et une division des fonctions dans des fichiers différents,
-//  mais j'ai malheureusement oublié mon fil micro-USB à l'école (comme vous pouvez le voir dans ma démo). 
-//  Changer beaucoup de code sans pouvoir le tester serait dangereuxc j'ai donc décidé de laisser tel quel.
-
 
 
 const int MATRIS_OUT_PIN = 15; //matris output pin
